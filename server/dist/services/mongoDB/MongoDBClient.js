@@ -46,17 +46,16 @@ var MongoDBClient = /** @class */ (function () {
     function MongoDBClient() {
         var _this = this;
         this.saveNoteToDB = function (collectionName, noteObject) { return __awaiter(_this, void 0, void 0, function () {
-            var myModel, note, savedNote;
+            var myModel, note;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
                         myModel = mongoose_1.default.model(collectionName, Note_1.NoteSchema);
-                        note = new myModel({ id: noteObject.id, noteHeader: noteObject.noteHeader, noteBody: noteObject.noteBody });
-                        return [4 /*yield*/, note.save()];
+                        return [4 /*yield*/, myModel.findOneAndUpdate({ id: noteObject.id }, { id: noteObject.id, noteHeader: noteObject.noteHeader, noteBody: noteObject.noteBody }, { upsert: true })];
                     case 1:
-                        savedNote = _a.sent();
-                        console.log(savedNote);
-                        return [2 /*return*/, savedNote];
+                        note = _a.sent();
+                        console.log(note);
+                        return [2 /*return*/, note];
                 }
             });
         }); };

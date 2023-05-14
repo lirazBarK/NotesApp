@@ -50,7 +50,6 @@ class MainApp extends HTMLElement {
 
             <note-board></note-board>
             <button @click=${(e) => this.addNote(e)}>Add Note</button>
-            <button @click=${(e) => this.saveNote(e)}>Save Note</button>
             <div class="note-boards-container">
 
             </div>

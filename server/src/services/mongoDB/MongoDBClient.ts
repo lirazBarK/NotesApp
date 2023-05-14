@@ -15,10 +15,12 @@ export class MongoDBClient {
 
     saveNoteToDB = async (collectionName, noteObject) => {
         const myModel = mongoose.model(collectionName, NoteSchema);
-        const note = new myModel({id: noteObject.id ,noteHeader: noteObject.noteHeader ,noteBody:noteObject.noteBody});
-        const savedNote = await note.save();
-        console.log(savedNote);
-        return savedNote;
+        const note = await myModel.findOneAndUpdate(
+            {id: noteObject.id},
+            {id: noteObject.id, noteHeader: noteObject.noteHeader ,noteBody:noteObject.noteBody},
+            { upsert: true });
+        console.log(note);
+        return note;
     }
 
     getNotes = async (collectionName) => {
