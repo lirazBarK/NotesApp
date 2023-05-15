@@ -125,7 +125,9 @@ class NoteElement extends HTMLElement {
                 <div @input=${(e) => this.changeColor(e)} class="color-slider">
                     <input type="range" min="0" max="360" value="0" id="hue-slider">
                 </div>
-                <div @input=${(e) => this.charCount(e)} class="note-header" contenteditable="true" data-max-length="10">
+                <div @focusout=${(e) => this.saveNote(e)}
+                     @input=${(e) => this.charCount(e)}
+                     class="note-header" contenteditable="true" data-max-length="10">
                 </div>
                 <div class="char-counter"></div>
                 <div class="note-body">
@@ -156,14 +158,16 @@ class NoteElement extends HTMLElement {
 
     async saveNote(e) {
         const noteHeaderDiv = this.shadowRoot.querySelector('.note-header');
-        const noteHeaderText = noteHeaderDiv.innerHTML.replace(/\s+/g, '');
-        if (noteHeaderText == '') return;
+        const noteBodyDiv = this.shadowRoot.querySelector('.note-content');
+        this.noteHeader = noteHeaderDiv.innerHTML;
+        this.noteBody = noteBodyDiv.innerHTML;
+
         const requestOptions = {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
                 collectionName: this.getAttribute('boardName'),
-                note: {id: this.id, noteHeader: noteHeaderText, noteBody: e.target.innerHTML}
+                note: {id: this.id, noteHeader: this.noteHeader, noteBody:  this.noteBody}
             })
         };
 
