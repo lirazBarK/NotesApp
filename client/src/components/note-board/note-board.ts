@@ -101,7 +101,7 @@ class NoteBoard extends HTMLElement {
         this._notes = notes;
         for (let i = 0; i < notes.length && i < 9; i++) {
             const img = document.createElement('img');
-            img.src = '../../../dist/icons/note.svg';
+            img.src = '../../../styles/icons/note.svg';
             img.alt = 'note';
             img.classList.add('note-img');
             noteBoardContainer.appendChild(img);
