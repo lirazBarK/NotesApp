@@ -44,8 +44,7 @@ class MainApp extends HTMLElement {
             </style>
 
             <div class="page-container">
-                <board-container @loadNotes=${(e) => this.loadNotesToCanvas(e)} class="board-container"></board-container>
-                <note-elements-canvas class="note-canvas-area"></note-elements-canvas>
+                <board-container @loadNotes=${(e) => this.createAndLoadNotesToCanvas(e)} class="board-container"></board-container>
                     <!--       <p>this is main-app</p>
 
             <note-board></note-board>
@@ -55,17 +54,24 @@ class MainApp extends HTMLElement {
             </div>
             <div class="notes-container">
                 
-            </div>-->
+            </div>-->   
             </div>
 
         `
         render(mainTemplate, this.shadowRoot);
     }
 
-    loadNotesToCanvas(e) {
-        const notesCanvas = this.shadowRoot.querySelector(".note-canvas-area");
+    createAndLoadNotesToCanvas(e) {
+        let notesCanvas = this.shadowRoot.querySelector(".note-canvas-area");
+
+        if(notesCanvas == null) {
+            const pageContainer = this.shadowRoot.querySelector(".page-container");
+            notesCanvas = document.createElement('note-elements-canvas');
+            notesCanvas.classList.add("note-canvas-area");
+            pageContainer.appendChild(notesCanvas)
+        }
         // @ts-ignore
-        notesCanvas.boardDetails = e.detail
+        notesCanvas.boardDetails = e.detail.board;
     }
 
     addNote(e) {

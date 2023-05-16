@@ -11,6 +11,20 @@ class NoteBoard extends HTMLElement {
         this.attachShadow({mode: "open"});
         this.render()
     }
+    
+    set name(name) {
+        if(typeof this.name !== 'undefined') {
+            //TODO: SAVE NEW NAME TO DATABASE
+            this.editBoardName(name);
+        }
+        // @ts-ignore
+        this._name = name;
+    }
+
+    get name() {
+        // @ts-ignore
+        return this._name;
+    }
 
     set notes(notes) {
         // @ts-ignore
@@ -84,7 +98,7 @@ class NoteBoard extends HTMLElement {
     }
 
     async getAllBoardNotes() {
-        const name = this.getAttribute('boardName');
+        const name = this.name;
         const response = await fetch(`/notes?collectionName=${name}`);
         const boardNotes = await response.json();
         // waits until the request completes...
@@ -92,6 +106,22 @@ class NoteBoard extends HTMLElement {
         return boardNotes.response;
     }
 
+    async editBoardName(name) {
+        // const requestOptions = {
+        //     method: 'POST',
+        //     headers: {'Content-Type': 'application/json'},
+        //     body: JSON.stringify({
+        //         collectionName: this.getAttribute('boardName'),
+        //         note: {id: this.id, noteHeader: this.noteHeader, noteBody:  this.noteBody}
+        //     })
+        // };
+        //
+        // const response = await fetch('/notes', requestOptions);
+        // const note = await response.json();
+        // const response =
+        const boardNameP = this.shadowRoot.getElementById('board-name') as HTMLElement;
+        boardNameP.innerHTML = name;
+    }
 
     async connectedCallback() {
         const noteBoardContainer = this.shadowRoot.querySelector(".note-board-container");
@@ -107,7 +137,7 @@ class NoteBoard extends HTMLElement {
             noteBoardContainer.appendChild(img);
         }
         const boardNameP = this.shadowRoot.getElementById('board-name') as HTMLElement;
-        boardNameP.innerHTML = this.getAttribute('boardName');
+        boardNameP.innerHTML = this.name;
     }
 
 

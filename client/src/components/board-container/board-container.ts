@@ -8,7 +8,6 @@ class BoardContainer extends HTMLElement {
         this.attachShadow({mode: "open"});
         this.render();
     }
-
     render() {
         const boardContainerTemplate = html`
             <style>
@@ -20,8 +19,9 @@ class BoardContainer extends HTMLElement {
                     margin: 10px;
                 }
 
-                #create-note-btn {
+                .board-container-buttons {
                     margin: 11px;
+                    width: 125px;
                 }
 
                 #input-container {
@@ -60,7 +60,7 @@ class BoardContainer extends HTMLElement {
             </style>
             <div class="board-container">
                 <h3>Boards</h3>
-                <button id="create-note-btn" @click=${(e) => this.openInput(e)}>Add Board</button>
+                <button id="create-board-btn" class="board-container-buttons" @click=${(e) => this.openInput(e)}>Add Board</button>
                 <div id="input-container">
                     <input type="text" id="input-field">
                     <button id="save-button" @click=${(e) => this.createNoteBoard(e)}>Save</button>
@@ -104,7 +104,8 @@ class BoardContainer extends HTMLElement {
         //     .catch(error => console.error(error));
 
         const noteBoard = document.createElement('note-board');
-        noteBoard.setAttribute('boardName', inputValue)
+        // @ts-ignore
+        noteBoard.name = inputValue;
         noteBoard.setAttribute('activeStatus', 'inactive');
         noteBoard.addEventListener('click', (e) => {
             this.changeActiveAttribute(e);
@@ -120,7 +121,7 @@ class BoardContainer extends HTMLElement {
             // waits until the request completes...
             console.log(noteBoards);
             return noteBoards;
-        }catch (e) {
+        } catch (e) {
             console.log(e)
         }
     }
@@ -135,9 +136,9 @@ class BoardContainer extends HTMLElement {
         e.target.setAttribute('status', 'active');
     }
 
-    loadNotesToCanvas(e, boardName) {
+    loadNotesToCanvas(e) {
         const event = new CustomEvent('loadNotes', {
-            detail: {notes: e.target.notes, boardName},
+            detail: {board: e.target},
             bubbles: true,
             cancelable: true,
             composed: false
@@ -152,11 +153,12 @@ class BoardContainer extends HTMLElement {
         const noteBoards = noteResponse.response;
         for (let i = 0; i < noteBoards.length; i++) {
             const noteBoard = document.createElement('note-board');
-            noteBoard.setAttribute('boardName', noteBoards[i].name)
+            // @ts-ignore
+            noteBoard.name = noteBoards[i].name;
             noteBoard.setAttribute('activeStatus', 'inactive');
             noteBoard.addEventListener("click", (e) => {
                 this.changeActiveAttribute(e);
-                this.loadNotesToCanvas(e,  noteBoards[i].name);
+                this.loadNotesToCanvas(e);
             })
             boardList.appendChild(noteBoard)
         }
