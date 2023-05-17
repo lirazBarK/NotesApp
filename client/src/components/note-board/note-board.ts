@@ -3,7 +3,7 @@ import {html, render} from '/node_modules/lit-html/lit-html.js'
 
 class NoteBoard extends HTMLElement {
     static get observedAttributes() {
-        return ['status'];
+        return ['status', 'name'];
     }
 
     constructor() {
@@ -75,30 +75,59 @@ class NoteBoard extends HTMLElement {
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
-        const noteBoardContainer = this.shadowRoot.querySelector(".note-board-container");
-        if (newValue == 'active') {
-            noteBoardContainer.classList.add(newValue);
-        } else {
-            noteBoardContainer.classList.remove(oldValue);
+        switch (name) {
+            case 'status':
+                const noteBoardContainer = this.shadowRoot.querySelector(".note-board-container");
+                if (newValue == 'active') {
+                    noteBoardContainer.classList.add(newValue);
+                } else {
+                    noteBoardContainer.classList.remove(oldValue);
+                }
+                break;
+            case 'name':
+                if (oldValue !== newValue) {
+                    this.editBoardName(oldValue, newValue);
+                }
+                break;
         }
     }
 
     async getAllBoardNotes() {
-        const name = this.getAttribute('boardName');
-        const response = await fetch(`/notes?collectionName=${name}`);
+        const name = this.getAttribute('name');
+        const response = await fetch(`/notes?noteBoardName=${name}`);
         const boardNotes = await response.json();
-        // waits until the request completes...
-        console.log(boardNotes);
         return boardNotes.response;
     }
 
+    async editBoardName(oldValue, newValue) {
+        const requestOptions = {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({oldBoardName: oldValue, newBoardName: newValue})
+        };
+        const response = await fetch('/editBoardName', requestOptions);
+        const board = await response.json();
+        const boardNameP = this.shadowRoot.getElementById('board-name') as HTMLElement;
+        boardNameP.innerHTML = newValue;
+    }
+
+    async deleteBoardAndBoardNotes() {
+        console.log('start delete');
+        const requestOptions = {
+            method: 'DELETE',
+            headers: {'Content-Type': 'application/json'},
+        };
+        const boardName = this.getAttribute('name');
+        const response = await fetch(`/boardAndBoardNotes/boardName/${boardName}`, requestOptions);
+        console.log('finish delete');
+
+    }
 
     async connectedCallback() {
         const noteBoardContainer = this.shadowRoot.querySelector(".note-board-container");
-
         const notes = await this.getAllBoardNotes();
         // @ts-ignore
-        this._notes = notes;
+        this.notes = notes;
         for (let i = 0; i < notes.length && i < 9; i++) {
             const img = document.createElement('img');
             img.src = '../../../styles/icons/note.svg';
@@ -107,10 +136,8 @@ class NoteBoard extends HTMLElement {
             noteBoardContainer.appendChild(img);
         }
         const boardNameP = this.shadowRoot.getElementById('board-name') as HTMLElement;
-        boardNameP.innerHTML = this.getAttribute('boardName');
+        boardNameP.innerHTML = this.getAttribute('name');
     }
-
-
 }
 
 customElements.define("note-board", NoteBoard);

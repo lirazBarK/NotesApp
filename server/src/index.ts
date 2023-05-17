@@ -7,6 +7,7 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import morgan from 'morgan';
 import {router as notesRouter} from "./routes/notes.routes";
+import {router as boardRouter} from "./routes/board.routes";
 
 const app = express();
 const port = process.env.PORT || 8888;
@@ -17,6 +18,8 @@ app.use(cors());
 app.use(morgan('dev'));
 
 app.use(notesRouter);
+app.use(boardRouter);
+
 
 const clientPath = join(process.cwd(), '..', 'client');
 const expressStaticHandler = express.static(clientPath);

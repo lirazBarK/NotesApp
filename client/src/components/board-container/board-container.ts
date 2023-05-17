@@ -8,7 +8,6 @@ class BoardContainer extends HTMLElement {
         this.attachShadow({mode: "open"});
         this.render();
     }
-
     render() {
         const boardContainerTemplate = html`
             <style>
@@ -20,8 +19,9 @@ class BoardContainer extends HTMLElement {
                     margin: 10px;
                 }
 
-                #create-note-btn {
+                .board-container-buttons {
                     margin: 11px;
+                    width: 125px;
                 }
 
                 #input-container {
@@ -60,7 +60,7 @@ class BoardContainer extends HTMLElement {
             </style>
             <div class="board-container">
                 <h3>Boards</h3>
-                <button id="create-note-btn" @click=${(e) => this.openInput(e)}>Add Board</button>
+                <button id="create-board-btn" class="board-container-buttons" @click=${(e) => this.openInput(e)}>Add Board</button>
                 <div id="input-container">
                     <input type="text" id="input-field">
                     <button id="save-button" @click=${(e) => this.createNoteBoard(e)}>Save</button>
@@ -81,7 +81,9 @@ class BoardContainer extends HTMLElement {
         inputContainer.classList.add('show'); // Show the input container
     };
 
-    createNoteBoard(e) {
+    async createNoteBoard(e) {
+        const boardList = this.shadowRoot.getElementById('board-list');
+
         const inputField = this.shadowRoot.getElementById('input-field') as HTMLInputElement;
         const inputContainer = this.shadowRoot.getElementById('input-container');
 
@@ -95,32 +97,33 @@ class BoardContainer extends HTMLElement {
         const requestOptions = {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({name: inputValue})
+            body: JSON.stringify({boardName: inputValue})
         };
 
-        // fetch('/createNoteBoard', requestOptions)
-        //     .then(response => response.json())
-        //     .then(data => console.log(data))
-        //     .catch(error => console.error(error));
+        const response = await fetch('/board', requestOptions);
+        const board = await response.json();
 
         const noteBoard = document.createElement('note-board');
-        noteBoard.setAttribute('boardName', inputValue)
+        // @ts-ignore
+        noteBoard.setAttribute('name', inputValue);
         noteBoard.setAttribute('activeStatus', 'inactive');
         noteBoard.addEventListener('click', (e) => {
             this.changeActiveAttribute(e);
+            this.loadNotesToCanvas(e);
         });
-        inputContainer.after(noteBoard);
+        noteBoard.click();
+        boardList.insertAdjacentElement('afterbegin', noteBoard);
         inputField.value = '';
     }
 
     async getAllNoteBoards() {
         try {
-            const response = await fetch('/getAllNoteBoards');
+            const response = await fetch('/board');
             const noteBoards = await response.json();
             // waits until the request completes...
             console.log(noteBoards);
             return noteBoards;
-        }catch (e) {
+        } catch (e) {
             console.log(e)
         }
     }
@@ -135,15 +138,25 @@ class BoardContainer extends HTMLElement {
         e.target.setAttribute('status', 'active');
     }
 
-    loadNotesToCanvas(e, boardName) {
+    loadNotesToCanvas(e) {
         const event = new CustomEvent('loadNotes', {
-            detail: {notes: e.target.notes, boardName},
+            detail: {board: e.target},
             bubbles: true,
             cancelable: true,
             composed: false
         })
-
         this.dispatchEvent(event);
+    }
+
+    removeBoardFromView(boardName) {
+        const boardList = this.shadowRoot.getElementById('board-list');
+        const boardElements = boardList.getElementsByTagName('note-board');
+        for (let i = 0; i < boardElements.length; i++) {
+            if (boardElements[i].getAttribute('name') === boardName) {
+                boardList.removeChild(boardElements[i]);
+                break; // Remove only the first occurrence of 'abc'
+            }
+        }
     }
 
     async connectedCallback() {
@@ -152,11 +165,12 @@ class BoardContainer extends HTMLElement {
         const noteBoards = noteResponse.response;
         for (let i = 0; i < noteBoards.length; i++) {
             const noteBoard = document.createElement('note-board');
-            noteBoard.setAttribute('boardName', noteBoards[i].name)
+            // @ts-ignore
+            noteBoard.setAttribute('name',noteBoards[i].name);
             noteBoard.setAttribute('activeStatus', 'inactive');
             noteBoard.addEventListener("click", (e) => {
                 this.changeActiveAttribute(e);
-                this.loadNotesToCanvas(e,  noteBoards[i].name);
+                this.loadNotesToCanvas(e);
             })
             boardList.appendChild(noteBoard)
         }
