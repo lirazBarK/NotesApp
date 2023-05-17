@@ -81,7 +81,9 @@ class BoardContainer extends HTMLElement {
         inputContainer.classList.add('show'); // Show the input container
     };
 
-    createNoteBoard(e) {
+    async createNoteBoard(e) {
+        const boardList = this.shadowRoot.getElementById('board-list');
+
         const inputField = this.shadowRoot.getElementById('input-field') as HTMLInputElement;
         const inputContainer = this.shadowRoot.getElementById('input-container');
 
@@ -95,28 +97,28 @@ class BoardContainer extends HTMLElement {
         const requestOptions = {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({name: inputValue})
+            body: JSON.stringify({boardName: inputValue})
         };
 
-        // fetch('/createNoteBoard', requestOptions)
-        //     .then(response => response.json())
-        //     .then(data => console.log(data))
-        //     .catch(error => console.error(error));
+        const response = await fetch('/board', requestOptions);
+        const board = await response.json();
 
         const noteBoard = document.createElement('note-board');
         // @ts-ignore
-        noteBoard.name = inputValue;
+        noteBoard.setAttribute('name', inputValue);
         noteBoard.setAttribute('activeStatus', 'inactive');
         noteBoard.addEventListener('click', (e) => {
             this.changeActiveAttribute(e);
+            this.loadNotesToCanvas(e);
         });
-        inputContainer.after(noteBoard);
+        noteBoard.click();
+        boardList.insertAdjacentElement('afterbegin', noteBoard);
         inputField.value = '';
     }
 
     async getAllNoteBoards() {
         try {
-            const response = await fetch('/getAllNoteBoards');
+            const response = await fetch('/board');
             const noteBoards = await response.json();
             // waits until the request completes...
             console.log(noteBoards);
@@ -143,8 +145,18 @@ class BoardContainer extends HTMLElement {
             cancelable: true,
             composed: false
         })
-
         this.dispatchEvent(event);
+    }
+
+    removeBoardFromView(boardName) {
+        const boardList = this.shadowRoot.getElementById('board-list');
+        const boardElements = boardList.getElementsByTagName('note-board');
+        for (let i = 0; i < boardElements.length; i++) {
+            if (boardElements[i].getAttribute('name') === boardName) {
+                boardList.removeChild(boardElements[i]);
+                break; // Remove only the first occurrence of 'abc'
+            }
+        }
     }
 
     async connectedCallback() {
@@ -154,7 +166,7 @@ class BoardContainer extends HTMLElement {
         for (let i = 0; i < noteBoards.length; i++) {
             const noteBoard = document.createElement('note-board');
             // @ts-ignore
-            noteBoard.name = noteBoards[i].name;
+            noteBoard.setAttribute('name',noteBoards[i].name);
             noteBoard.setAttribute('activeStatus', 'inactive');
             noteBoard.addEventListener("click", (e) => {
                 this.changeActiveAttribute(e);

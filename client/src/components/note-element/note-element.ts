@@ -159,15 +159,18 @@ class NoteElement extends HTMLElement {
     async saveNote(e) {
         const noteHeaderDiv = this.shadowRoot.querySelector('.note-header');
         const noteBodyDiv = this.shadowRoot.querySelector('.note-content');
+        const boardName = this.getAttribute('boardName')
         this.noteHeader = noteHeaderDiv.innerHTML;
         this.noteBody = noteBodyDiv.innerHTML;
-
+        
         const requestOptions = {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
-                collectionName: this.getAttribute('boardName'),
-                note: {id: this.id, noteHeader: this.noteHeader, noteBody:  this.noteBody}
+                note: {id: this.id,
+                    noteHeader: this.noteHeader,
+                    noteBody:  this.noteBody,
+                    noteBoardName: boardName}
             })
         };
 

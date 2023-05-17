@@ -34,20 +34,21 @@ class NoteElementsCanvas extends HTMLElement {
     createBoard(board) {
         const notesContainer = this.shadowRoot.querySelector(".notes-canvas-container") as HTMLDivElement;
         const boardNameContainer = this.shadowRoot.getElementById("board-name");
-        boardNameContainer.innerHTML = board.name;
+        boardNameContainer.innerHTML = board.getAttribute('name');
+
         const notes = board.notes;
-
-
-        for (let i = 0; i < notes.length; i++) {
-            const note = document.createElement('note-element');
-            note.setAttribute('boardName', board.name);
-            note.classList.add('note');
-            note.id = notes[i].id;
-            // @ts-ignore
-            note.noteHeader = notes[i].noteHeader;
-            // @ts-ignore
-            note.noteBody = notes[i].noteBody;
-            notesContainer.appendChild(note)
+        if (typeof notes !== 'undefined') {
+            for (let i = 0; i < notes.length; i++) {
+                const note = document.createElement('note-element');
+                note.setAttribute('boardName', board.getAttribute('name'));
+                note.classList.add('note');
+                note.id = notes[i].id;
+                // @ts-ignore
+                note.noteHeader = notes[i].noteHeader;
+                // @ts-ignore
+                note.noteBody = notes[i].noteBody;
+                notesContainer.appendChild(note)
+            }
         }
     }
 
@@ -107,7 +108,7 @@ class NoteElementsCanvas extends HTMLElement {
                     text-decoration: none;
                     cursor: pointer;
                 }
-                
+
             </style>
             <div class="notes-canvas-container">
                 <div class="dropdown">
@@ -115,20 +116,29 @@ class NoteElementsCanvas extends HTMLElement {
                     <ul class="dropdown-menu">
                         <li><a href="#" @click=${(e) => this.addNote(e)}>Add Note</a></li>
                         <li><a href="#" @click=${(e) => this.openEditDialog(e)}>Edit Board Name</a></li>
-                        <li><a href="#" onclick="deleteBoard()">Delete Board</a></li>
+                        <li><a href="#" @click=${(e) => this.openDeleteDialog(e)}>Delete Board</a></li>
                     </ul>
                 </div>
 
                 <div id="editModal" class="modal">
-                    <div class="modal-content">
+                    <div class="edit-modal-content">
                         <span @click=${(e) => this.closeEditDialog(e)} class="close">&times;</span>
                         <input type="text" id="editInput" maxlength="10">
                         <button @click=${(e) => this.handleEditDone(e)}>Done</button>
                     </div>
                 </div>
 
+                <div id="deleteModal" class="modal">
+                    <div class="delete-modal-content">
+                        <h2>Are you sure you want to delete the board?</h2>
+                        <p>All notes on this board will be deleted</p>
+                        <button @click=${(e) => this.deleteBoard(e)}>Delete</button>
+                        <button @click=${(e) => this.closeDeleteDialog(e)}>Cancel</button>
+
+                    </div>
+                </div>
+
                 <div id="modalBackdrop" class="modal-backdrop"></div>
-                
                 <h1 id="board-name"></h1>
 
             </div>
@@ -139,13 +149,13 @@ class NoteElementsCanvas extends HTMLElement {
 
     toggleDropdown(e) {
         const dropdownMenu = this.shadowRoot.querySelector(".dropdown-menu") as HTMLUListElement;
-        dropdownMenu.style.display = dropdownMenu.style.display === "" ||  dropdownMenu.style.display === "none" ? "block" : "none";
+        dropdownMenu.style.display = dropdownMenu.style.display === "" || dropdownMenu.style.display === "none" ? "block" : "none";
     }
 
     addNote(e) {
         const notesContainer = this.shadowRoot.querySelector(".notes-canvas-container") as HTMLDivElement;
         const note = document.createElement('note-element');
-        note.setAttribute('boardName', this.boardDetails.boardName);
+        note.setAttribute('boardName', this.boardDetails.getAttribute('name'));
 
         note.classList.add('note');
         note.id = uuidv4();
@@ -164,9 +174,9 @@ class NoteElementsCanvas extends HTMLElement {
         const value = editInput.value;
         if (value.length <= 10) {
             const boardNameContainer = this.shadowRoot.getElementById("board-name");
-            boardNameContainer.innerHTML = value;
-            this.boardDetails.name = value;
+            this.boardDetails.setAttribute('name', value);
             this.closeEditDialog(e);
+            boardNameContainer.innerHTML = value;
         } else {
             alert("Maximum 10 characters allowed!");
         }
@@ -179,8 +189,35 @@ class NoteElementsCanvas extends HTMLElement {
         backdrop.style.display = "none";
     }
 
-    async connectedCallback() {
+    openDeleteDialog(e) {
+        const modal = this.shadowRoot.getElementById("deleteModal");
+        const backdrop = this.shadowRoot.getElementById("modalBackdrop");
+        modal.style.display = "block";
+        backdrop.style.display = "block";
+    }
 
+    closeDeleteDialog(e) {
+        const modal = this.shadowRoot.getElementById("deleteModal");
+        const backdrop = this.shadowRoot.getElementById("modalBackdrop");
+        modal.style.display = "none";
+        backdrop.style.display = "none";
+    }
+
+    deleteBoard(e) {
+        this.boardDetails.deleteBoardAndBoardNotes();
+        this.closeDeleteDialog(e);
+
+        const event = new CustomEvent('deleteBoardFromView', {
+            detail: {boardName: this.boardDetails.getAttribute('name')},
+            bubbles: true,
+            cancelable: true,
+            composed: false
+        })
+
+        this.dispatchEvent(event);
+    }
+
+    async connectedCallback() {
     }
 }
 

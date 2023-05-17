@@ -64,12 +64,16 @@ class MainApp extends HTMLElement {
     createAndLoadNotesToCanvas(e) {
         let notesCanvas = this.shadowRoot.querySelector(".note-canvas-area");
 
-        if(notesCanvas == null) {
-            const pageContainer = this.shadowRoot.querySelector(".page-container");
-            notesCanvas = document.createElement('note-elements-canvas');
-            notesCanvas.classList.add("note-canvas-area");
-            pageContainer.appendChild(notesCanvas)
+        if(notesCanvas !== null) {
+            notesCanvas.remove();
         }
+        const pageContainer = this.shadowRoot.querySelector(".page-container");
+        notesCanvas = document.createElement('note-elements-canvas');
+        notesCanvas.classList.add("note-canvas-area");
+        notesCanvas.addEventListener("deleteBoardFromView", (e) => {
+            this.removeCanvasAndDeleteBoard(e);
+        })
+        pageContainer.appendChild(notesCanvas)
         // @ts-ignore
         notesCanvas.boardDetails = e.detail.board;
     }
@@ -79,6 +83,15 @@ class MainApp extends HTMLElement {
         const note = document.createElement('note-element');
         note.id = uuidv4();
         notesContainer.appendChild(note)
+    }
+
+    removeCanvasAndDeleteBoard(e) {
+        const notesCanvas = this.shadowRoot.querySelector(".note-canvas-area");
+        const boardContainer = this.shadowRoot.querySelector('.board-container');
+        
+        notesCanvas.remove();
+        // @ts-ignore
+        boardContainer.removeBoardFromView(e.detail.boardName);
     }
 
 

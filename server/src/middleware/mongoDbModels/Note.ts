@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 
-export const NoteSchema = new mongoose.Schema({
+const NoteSchema = new mongoose.Schema({
     id: {
         type: String,
         required: true
@@ -14,7 +14,12 @@ export const NoteSchema = new mongoose.Schema({
     noteBody: {
         type: String,
         trim: true,
+    },
+    boardName: {
+        type: String,
+        required: true
     }
+    
 });
 
-//export const Note = mongoose.model("Note", NoteSchema);
+export const Note = mongoose.model("Note", NoteSchema, "NoteList");
