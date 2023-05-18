@@ -96,7 +96,8 @@ class NoteBoard extends HTMLElement {
         const name = this.getAttribute('name');
         const response = await fetch(`/notes?noteBoardName=${name}`);
         const boardNotes = await response.json();
-        return boardNotes.response;
+        // @ts-ignore
+        this.notes = boardNotes.response;
     }
 
     async editBoardName(oldValue, newValue) {
@@ -123,12 +124,22 @@ class NoteBoard extends HTMLElement {
 
     }
 
+    addNotesImgToBoard() {
+        if (this.notes.length < 9) {
+            const noteBoardContainer = this.shadowRoot.querySelector(".note-board-container");
+            const img = document.createElement('img');
+            img.src = '../../../styles/icons/note.svg';
+            img.alt = 'note';
+            img.classList.add('note-img');
+            noteBoardContainer.appendChild(img);
+        }
+    }
+
     async connectedCallback() {
-        const noteBoardContainer = this.shadowRoot.querySelector(".note-board-container");
-        const notes = await this.getAllBoardNotes();
-        // @ts-ignore
-        this.notes = notes;
-        for (let i = 0; i < notes.length && i < 9; i++) {
+        await this.getAllBoardNotes();
+        const iterations = Math.min(9, this.notes.length);
+        for (let i = 0; i < iterations; i++) {
+            const noteBoardContainer = this.shadowRoot.querySelector(".note-board-container");
             const img = document.createElement('img');
             img.src = '../../../styles/icons/note.svg';
             img.alt = 'note';

@@ -13,9 +13,9 @@ class NoteElementsCanvas extends HTMLElement {
     set boardDetails(board) {
         // @ts-ignore
         this.removePreviousNotes();
-        this.createBoard(board);
         // @ts-ignore
         this._boardDetails = board;
+        this.createBoard(board);
     }
 
     get boardDetails() {
@@ -32,22 +32,15 @@ class NoteElementsCanvas extends HTMLElement {
     }
 
     createBoard(board) {
-        const notesContainer = this.shadowRoot.querySelector(".notes-canvas-container") as HTMLDivElement;
         const boardNameContainer = this.shadowRoot.getElementById("board-name");
         boardNameContainer.innerHTML = board.getAttribute('name');
 
         const notes = board.notes;
         if (typeof notes !== 'undefined') {
+            // @ts-ignore
+            notes.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
             for (let i = 0; i < notes.length; i++) {
-                const note = document.createElement('note-element');
-                note.setAttribute('boardName', board.getAttribute('name'));
-                note.classList.add('note');
-                note.id = notes[i].id;
-                // @ts-ignore
-                note.noteHeader = notes[i].noteHeader;
-                // @ts-ignore
-                note.noteBody = notes[i].noteBody;
-                notesContainer.appendChild(note)
+                this.addNote(notes[i])
             }
         }
     }
@@ -114,7 +107,7 @@ class NoteElementsCanvas extends HTMLElement {
                 <div class="dropdown">
                     <button class="dropdown-toggle" @click=${(e) => this.toggleDropdown(e)}>Dropdown</button>
                     <ul class="dropdown-menu">
-                        <li><a href="#" @click=${(e) => this.addNote(e)}>Add Note</a></li>
+                        <li><a href="#" @click=${(e) => this.addNote(e.target, true)}>Add Note</a></li>
                         <li><a href="#" @click=${(e) => this.openEditDialog(e)}>Edit Board Name</a></li>
                         <li><a href="#" @click=${(e) => this.openDeleteDialog(e)}>Delete Board</a></li>
                     </ul>
@@ -152,14 +145,57 @@ class NoteElementsCanvas extends HTMLElement {
         dropdownMenu.style.display = dropdownMenu.style.display === "" || dropdownMenu.style.display === "none" ? "block" : "none";
     }
 
-    addNote(e) {
+    addNote(target, isNew = false) {
         const notesContainer = this.shadowRoot.querySelector(".notes-canvas-container") as HTMLDivElement;
         const note = document.createElement('note-element');
         note.setAttribute('boardName', this.boardDetails.getAttribute('name'));
-
         note.classList.add('note');
-        note.id = uuidv4();
-        notesContainer.appendChild(note)
+        if(isNew) {
+            note.id = uuidv4();
+            notesContainer.appendChild(note)
+
+            const event = new CustomEvent('addNoteImgToBorad', {
+                detail: {boardName: this.boardDetails.getAttribute('name')},
+                bubbles: true,
+                cancelable: true,
+                composed: false
+            })
+
+            this.dispatchEvent(event);
+        } else {
+            note.id = target.id;
+            // @ts-ignore
+            note.noteHeader = target.noteHeader;
+            // @ts-ignore
+            note.noteBody = target.noteBody;
+            notesContainer.appendChild(note)
+        }
+
+        note.addEventListener('saveNoteToLocalBoard', (e) => {
+            this.saveNoteToLocalBoard(e);
+        })
+    }
+
+
+    saveNoteToLocalBoard(e) {
+        // @ts-ignore
+        const modifiedNote = e.detail.note;
+        const existingNoteIndex = this.boardDetails.notes.findIndex(note => note.id === modifiedNote.id);
+
+        if (existingNoteIndex !== -1) {
+            // Modify the existing item
+            this.boardDetails.notes = this.boardDetails.notes.map((note, index) => {
+                if (index === existingNoteIndex) {
+                    return { ...note, noteHeader: modifiedNote.noteHeader, noteBody: modifiedNote.noteBody}; // Modify age of existing note
+                } else {
+                    return note; // Keep other items unchanged
+                }
+            });
+        } else {
+            // Add the new item
+            const newNote = { id: modifiedNote.id, noteHeader: modifiedNote.noteHeader, noteBody: modifiedNote.noteBody};
+            this.boardDetails.notes.push(newNote);
+        }
     }
 
     openEditDialog(e) {
