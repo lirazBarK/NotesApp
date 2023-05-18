@@ -31,7 +31,7 @@ class MainApp extends HTMLElement {
                     font-size: 30px;
                     max-width: 190px;
                 }
-                
+
                 .note-canvas-area {
                     grid-area: note-canvas-area;
                     background-color: rgba(255, 255, 23, 0.8);
@@ -44,17 +44,8 @@ class MainApp extends HTMLElement {
             </style>
 
             <div class="page-container">
-                <board-container @loadNotes=${(e) => this.createAndLoadNotesToCanvas(e)} class="board-container"></board-container>
-                    <!--       <p>this is main-app</p>
-
-            <note-board></note-board>
-            <button @click=${(e) => this.addNote(e)}>Add Note</button>
-            <div class="note-boards-container">
-
-            </div>
-            <div class="notes-container">
-                
-            </div>-->   
+                <board-container @loadNotes=${(e) => this.createAndLoadNotesToCanvas(e)}
+                                 class="board-container"></board-container>
             </div>
 
         `
@@ -64,7 +55,7 @@ class MainApp extends HTMLElement {
     createAndLoadNotesToCanvas(e) {
         let notesCanvas = this.shadowRoot.querySelector(".note-canvas-area");
 
-        if(notesCanvas !== null) {
+        if (notesCanvas !== null) {
             notesCanvas.remove();
         }
         const pageContainer = this.shadowRoot.querySelector(".page-container");
@@ -73,41 +64,31 @@ class MainApp extends HTMLElement {
         notesCanvas.addEventListener("deleteBoardFromView", (e) => {
             this.removeCanvasAndDeleteBoard(e);
         })
+        notesCanvas.addEventListener("addNoteImgToBorad", (e) => {
+            this.addNoteImgToBorad(e);
+        })
+
         pageContainer.appendChild(notesCanvas)
         // @ts-ignore
         notesCanvas.boardDetails = e.detail.board;
     }
 
-    addNote(e) {
-        const notesContainer = this.shadowRoot.querySelector(".notes-container") as HTMLDivElement;
-        const note = document.createElement('note-element');
-        note.id = uuidv4();
-        notesContainer.appendChild(note)
-    }
-
     removeCanvasAndDeleteBoard(e) {
         const notesCanvas = this.shadowRoot.querySelector(".note-canvas-area");
         const boardContainer = this.shadowRoot.querySelector('.board-container');
-        
+
         notesCanvas.remove();
         // @ts-ignore
         boardContainer.removeBoardFromView(e.detail.boardName);
     }
 
-
-
-
-    fetchData() {
-        fetch('/notes')
-            .then(response => response.json())
-            .then(data => console.log(data))
-            .catch(error => console.error(error));
+    addNoteImgToBorad(e) {
+        const boardContainer = this.shadowRoot.querySelector('.board-container');
+        // @ts-ignore
+        boardContainer.addNoteImgToBoard(e.detail.boardName);
     }
 
     connectedCallback() {
-        //make an api call to the backend and load all available notes
-        //create and append all loaded notes
-        //  this.fetchData();
 
     }
 }

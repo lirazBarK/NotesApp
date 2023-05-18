@@ -176,6 +176,15 @@ class NoteElement extends HTMLElement {
 
         const response = await fetch('/notes', requestOptions);
         const note = await response.json();
+
+        const event = new CustomEvent('saveNoteToLocalBoard', {
+            detail: {note: this},
+            bubbles: true,
+            cancelable: true,
+            composed: false
+        })
+
+        this.dispatchEvent(event);
     }
 
     charCount(e) {
@@ -241,6 +250,14 @@ class NoteElement extends HTMLElement {
         window.addEventListener('mouseup', mouseUp);
         window.addEventListener('mousemove', mouseMove);
     };
+
+    connectedCallback() {
+        const headerDiv = this.shadowRoot.querySelector('.note-header') as HTMLDivElement;
+
+        if (typeof this.noteHeader === 'undefined') {
+            headerDiv.focus();
+        }
+    }
 
 }
 

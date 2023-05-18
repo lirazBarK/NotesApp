@@ -138,7 +138,7 @@ class BoardContainer extends HTMLElement {
         e.target.setAttribute('status', 'active');
     }
 
-    loadNotesToCanvas(e) {
+    async loadNotesToCanvas(e) {
         const event = new CustomEvent('loadNotes', {
             detail: {board: e.target},
             bubbles: true,
@@ -159,10 +159,23 @@ class BoardContainer extends HTMLElement {
         }
     }
 
+    addNoteImgToBoard(boardName) {
+        const boardList = this.shadowRoot.getElementById('board-list');
+        const boardElements = boardList.getElementsByTagName('note-board');
+        for (let i = 0; i < boardElements.length; i++) {
+            if (boardElements[i].getAttribute('name') === boardName) {
+                // @ts-ignore
+                boardElements[i].addNotesImgToBoard();
+                break; // Remove only the first occurrence of 'abc'
+            }
+        }
+    }
+
     async connectedCallback() {
         const boardList = this.shadowRoot.getElementById('board-list');
-        const noteResponse = await this.getAllNoteBoards();
-        const noteBoards = noteResponse.response;
+        const noteBoardsResponse = await this.getAllNoteBoards();
+        // @ts-ignore
+        const noteBoards = noteBoardsResponse.response.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
         for (let i = 0; i < noteBoards.length; i++) {
             const noteBoard = document.createElement('note-board');
             // @ts-ignore
