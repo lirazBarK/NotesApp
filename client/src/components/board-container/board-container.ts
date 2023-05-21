@@ -8,6 +8,16 @@ class BoardContainer extends HTMLElement {
         this.attachShadow({mode: "open"});
         this.render();
     }
+
+    set boardAmount(amount) {
+        // @ts-ignore
+        this._boardAmount = amount;
+    }
+
+    get boardAmount() {
+        // @ts-ignore
+        return this._boardAmount;
+    }
     render() {
         const boardContainerTemplate = html`
             <style>
@@ -60,6 +70,7 @@ class BoardContainer extends HTMLElement {
             </style>
             <div class="board-container">
                 <h3>Boards</h3>
+                <p>Number of Boards: <span id="boards-amount"></span></p>
                 <button id="create-board-btn" class="board-container-buttons" @click=${(e) => this.openInput(e)}>Add Board</button>
                 <div id="input-container">
                     <input type="text" id="input-field">
@@ -83,6 +94,7 @@ class BoardContainer extends HTMLElement {
 
     async createNoteBoard(e) {
         const boardList = this.shadowRoot.getElementById('board-list');
+        const boardsAmount = this.shadowRoot.getElementById('boards-amount');
 
         const inputField = this.shadowRoot.getElementById('input-field') as HTMLInputElement;
         const inputContainer = this.shadowRoot.getElementById('input-container');
@@ -114,6 +126,8 @@ class BoardContainer extends HTMLElement {
         noteBoard.click();
         boardList.insertAdjacentElement('afterbegin', noteBoard);
         inputField.value = '';
+        this.boardAmount = this.boardAmount + 1;
+        boardsAmount.innerHTML = this.boardAmount;
     }
 
     async getAllNoteBoards() {
@@ -149,6 +163,7 @@ class BoardContainer extends HTMLElement {
     }
 
     removeBoardFromView(boardName) {
+        const boardsAmount = this.shadowRoot.getElementById('boards-amount');
         const boardList = this.shadowRoot.getElementById('board-list');
         const boardElements = boardList.getElementsByTagName('note-board');
         for (let i = 0; i < boardElements.length; i++) {
@@ -157,6 +172,9 @@ class BoardContainer extends HTMLElement {
                 break; // Remove only the first occurrence of 'abc'
             }
         }
+        this.boardAmount = this.boardAmount -1;
+        boardsAmount.innerHTML = this.boardAmount;
+
     }
 
     addNoteImgToBoard(boardName) {
@@ -185,6 +203,7 @@ class BoardContainer extends HTMLElement {
 
     async connectedCallback() {
         const boardList = this.shadowRoot.getElementById('board-list');
+        const boardsAmount = this.shadowRoot.getElementById('boards-amount');
         const noteBoardsResponse = await this.getAllNoteBoards();
         // @ts-ignore
         const noteBoards = noteBoardsResponse.response.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
@@ -199,6 +218,8 @@ class BoardContainer extends HTMLElement {
             })
             boardList.appendChild(noteBoard)
         }
+        this.boardAmount = noteBoards.length;
+        boardsAmount.innerHTML = this.boardAmount;
 
     }
 }
