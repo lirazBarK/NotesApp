@@ -68,6 +68,10 @@ class MainApp extends HTMLElement {
             this.addNoteImgToBorad(e);
         })
 
+        notesCanvas.addEventListener("deleteNoteImgFromBoard", (e) => {
+            this.deleteNoteImgFromBoard(e);
+        })
+
         pageContainer.appendChild(notesCanvas)
         // @ts-ignore
         notesCanvas.boardDetails = e.detail.board;
@@ -86,6 +90,13 @@ class MainApp extends HTMLElement {
         const boardContainer = this.shadowRoot.querySelector('.board-container');
         // @ts-ignore
         boardContainer.addNoteImgToBoard(e.detail.boardName);
+    }
+
+    deleteNoteImgFromBoard(e) {
+        const boardContainer = this.shadowRoot.querySelector('.board-container');
+        // @ts-ignore
+        boardContainer.deleteNoteImgFromBoard(e.detail.boardName);
+
     }
 
     connectedCallback() {

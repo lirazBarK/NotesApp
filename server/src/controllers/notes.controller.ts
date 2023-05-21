@@ -23,3 +23,13 @@ export const getAllNotes = async (req, res, next) => {
     }
 }
 
+export const deleteNote = async (req, res, next) => {
+    try{
+        let sendResponse = await mongoClient.deleteNote(req.params.noteId);
+        sendSuccessResponse({response: sendResponse}, res);
+    } catch (e) {
+        console.log(e);
+        next(e);
+    }
+}
+

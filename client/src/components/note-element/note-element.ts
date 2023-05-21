@@ -117,10 +117,49 @@ class NoteElement extends HTMLElement {
                     display: none;
                 }
 
+                .modal {
+                    display: none;
+                    position: fixed;
+                    z-index: 9999;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    background-color: #fff;
+                    padding: 20px;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+                }
+
+                .modal-backdrop {
+                    display: none;
+                    position: fixed;
+                    z-index: 9998;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0, 0, 0, 0.5);
+                }
+
+                /* The Close Button */
+                .close {
+                    color: #aaaaaa;
+                    float: right;
+                    font-size: 28px;
+                    font-weight: bold;
+                    margin-right: 5px;
+                }
+
+                .close:hover,
+                .close:focus {
+                    color: #000;
+                    text-decoration: none;
+                    cursor: pointer;
+                }
+
             </style>
 
             <div @mousedown=${(e) => this.handleMouseDownEvent(e)} id="note">
-
+                <span @click=${(e) => this.openDeleteDialog(e)} class="close">&times;</span>
                 <div @click=${() => this.toggleSlider()} class="options-btn">&#8230;</div>
                 <div @input=${(e) => this.changeColor(e)} class="color-slider">
                     <input type="range" min="0" max="360" value="0" id="hue-slider">
@@ -135,6 +174,16 @@ class NoteElement extends HTMLElement {
                 </div>
             </div>
 
+            <div id="deleteModal" class="modal">
+                <div class="delete-modal-content">
+                    <h2>Are you sure you want to delete this note?</h2>
+                    <button @click=${(e) => this.deleteNote(e)}>Delete</button>
+                    <button @click=${(e) => this.closeDeleteDialog(e)}>Cancel</button>
+
+                </div>
+            </div>
+
+            <div id="modalBackdrop" class="modal-backdrop"></div>
 
 
         `
@@ -178,6 +227,24 @@ class NoteElement extends HTMLElement {
         const note = await response.json();
 
         const event = new CustomEvent('saveNoteToLocalBoard', {
+            detail: {note: this},
+            bubbles: true,
+            cancelable: true,
+            composed: false
+        })
+
+        this.dispatchEvent(event);
+    }
+
+    async deleteNote(e) {
+        const requestOptions = {
+            method: 'DELETE',
+            headers: {'Content-Type': 'application/json'},
+        };
+        const noteId = this.id;
+        const response = await fetch(`/note/noteId/${noteId}`, requestOptions);
+
+        const event = new CustomEvent('deleteNotefromLocalBoard', {
             detail: {note: this},
             bubbles: true,
             cancelable: true,
@@ -250,6 +317,20 @@ class NoteElement extends HTMLElement {
         window.addEventListener('mouseup', mouseUp);
         window.addEventListener('mousemove', mouseMove);
     };
+
+    openDeleteDialog(e) {
+        const modal = this.shadowRoot.getElementById("deleteModal");
+        const backdrop = this.shadowRoot.getElementById("modalBackdrop");
+        modal.style.display = "block";
+        backdrop.style.display = "block";
+    }
+
+    closeDeleteDialog(e) {
+        const modal = this.shadowRoot.getElementById("deleteModal");
+        const backdrop = this.shadowRoot.getElementById("modalBackdrop");
+        modal.style.display = "none";
+        backdrop.style.display = "none";
+    }
 
     connectedCallback() {
         const headerDiv = this.shadowRoot.querySelector('.note-header') as HTMLDivElement;

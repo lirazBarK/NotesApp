@@ -135,6 +135,13 @@ class NoteBoard extends HTMLElement {
         }
     }
 
+    deleteNoteImgFromBoard() {
+        if (this.notes.length < 9 ) {
+            const img = this.shadowRoot.querySelector('img');
+            if(img) img.remove();
+        }
+    }
+
     async connectedCallback() {
         await this.getAllBoardNotes();
         const iterations = Math.min(9, this.notes.length);

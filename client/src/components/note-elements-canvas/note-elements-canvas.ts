@@ -174,6 +174,10 @@ class NoteElementsCanvas extends HTMLElement {
         note.addEventListener('saveNoteToLocalBoard', (e) => {
             this.saveNoteToLocalBoard(e);
         })
+
+        note.addEventListener('deleteNotefromLocalBoard', (e) => {
+            this.deleteNotefromLocalBoard(e);
+        })
     }
 
 
@@ -186,7 +190,7 @@ class NoteElementsCanvas extends HTMLElement {
             // Modify the existing item
             this.boardDetails.notes = this.boardDetails.notes.map((note, index) => {
                 if (index === existingNoteIndex) {
-                    return { ...note, noteHeader: modifiedNote.noteHeader, noteBody: modifiedNote.noteBody}; // Modify age of existing note
+                    return { ...note, noteHeader: modifiedNote.noteHeader, noteBody: modifiedNote.noteBody};
                 } else {
                     return note; // Keep other items unchanged
                 }
@@ -196,6 +200,36 @@ class NoteElementsCanvas extends HTMLElement {
             const newNote = { id: modifiedNote.id, noteHeader: modifiedNote.noteHeader, noteBody: modifiedNote.noteBody};
             this.boardDetails.notes.push(newNote);
         }
+    }
+
+    deleteNotefromLocalBoard(e) {
+        // @ts-ignore
+        const noteToDelete = e.detail.note;
+        const index = this.boardDetails.notes.findIndex((note) => {
+            return note.id === noteToDelete.id;
+        });
+
+        if (index > -1) {
+            this.boardDetails.notes.splice(index, 1);
+        }
+
+        // @ts-ignore
+        const notes = this.shadowRoot.querySelectorAll('note-element');
+        for (let i = 0; i < notes.length; i++) {
+            if (notes[i].id === noteToDelete.id) {
+                notes[i].parentNode.removeChild(notes[i]);
+                break;
+            }
+        }
+
+        const event = new CustomEvent('deleteNoteImgFromBoard', {
+            detail: {boardName: this.boardDetails.getAttribute('name')},
+            bubbles: true,
+            cancelable: true,
+            composed: false
+        })
+
+        this.dispatchEvent(event);
     }
 
     openEditDialog(e) {
