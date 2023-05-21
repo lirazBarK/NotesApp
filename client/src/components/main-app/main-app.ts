@@ -71,10 +71,9 @@ class MainApp extends HTMLElement {
         notesCanvas.addEventListener("deleteNoteImgFromBoard", (e) => {
             this.deleteNoteImgFromBoard(e);
         })
-
-        pageContainer.appendChild(notesCanvas)
         // @ts-ignore
         notesCanvas.boardDetails = e.detail.board;
+        pageContainer.appendChild(notesCanvas)
     }
 
     removeCanvasAndDeleteBoard(e) {

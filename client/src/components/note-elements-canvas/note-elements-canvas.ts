@@ -133,6 +133,7 @@ class NoteElementsCanvas extends HTMLElement {
 
                 <div id="modalBackdrop" class="modal-backdrop"></div>
                 <h1 id="board-name"></h1>
+                <p>Number of Notes: <span id="note-amount"></span></p>
 
             </div>
         `;
@@ -147,6 +148,8 @@ class NoteElementsCanvas extends HTMLElement {
 
     addNote(target, isNew = false) {
         const notesContainer = this.shadowRoot.querySelector(".notes-canvas-container") as HTMLDivElement;
+        const noteAmount = this.shadowRoot.getElementById('note-amount');
+
         const note = document.createElement('note-element');
         note.setAttribute('boardName', this.boardDetails.getAttribute('name'));
         note.classList.add('note');
@@ -178,6 +181,9 @@ class NoteElementsCanvas extends HTMLElement {
         note.addEventListener('deleteNotefromLocalBoard', (e) => {
             this.deleteNotefromLocalBoard(e);
         })
+
+        noteAmount.innerHTML = this.boardDetails.notes.length +1;
+
     }
 
 
@@ -203,6 +209,9 @@ class NoteElementsCanvas extends HTMLElement {
     }
 
     deleteNotefromLocalBoard(e) {
+        const noteAmount = this.shadowRoot.getElementById('note-amount');
+        // @ts-ignore
+        noteAmount.innerHTML = this.boardDetails.notes.length -1;
         // @ts-ignore
         const noteToDelete = e.detail.note;
         const index = this.boardDetails.notes.findIndex((note) => {
@@ -288,6 +297,8 @@ class NoteElementsCanvas extends HTMLElement {
     }
 
     async connectedCallback() {
+        const noteAmount = this.shadowRoot.getElementById('note-amount');
+        noteAmount.innerHTML = this.boardDetails.notes.length;
     }
 }
 
