@@ -69,5 +69,14 @@ export class MongoDBClient {
             console.log(e);
         }
     }
+
+    async deleteNote(noteId) {
+        try {
+            const note = await Note.deleteOne({id: noteId});
+            return 'deleted successfully';
+        } catch (e) {
+            console.log(e);
+        }
+    }
 }
 

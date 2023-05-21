@@ -171,6 +171,18 @@ class BoardContainer extends HTMLElement {
         }
     }
 
+    deleteNoteImgFromBoard(boardName) {
+        const boardList = this.shadowRoot.getElementById('board-list');
+        const boardElements = boardList.getElementsByTagName('note-board');
+        for (let i = 0; i < boardElements.length; i++) {
+            if (boardElements[i].getAttribute('name') === boardName) {
+                // @ts-ignore
+                boardElements[i].deleteNoteImgFromBoard();
+                break; // Remove only the first occurrence of 'abc'
+            }
+        }
+    }
+
     async connectedCallback() {
         const boardList = this.shadowRoot.getElementById('board-list');
         const noteBoardsResponse = await this.getAllNoteBoards();
